@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Tank & Trip Tracker</title>
+  <title>Tank & Trip Tracker Pro</title>
   <meta name="theme-color" content="#0f172a">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -18,100 +18,223 @@
       --text: #f8fafc;
       --text-muted: #94a3b8;
       --border: #334155;
+      --success: #10b981;
+      --danger: #ef4444;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background: var(--bg); color: var(--text); padding-bottom: 80px; }
-    header { background: var(--card); padding: 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 10; }
+    body { background: var(--bg); color: var(--text); padding-bottom: 90px; }
+    header { background: var(--card); padding: 14px 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 10; }
     h1 { font-size: 1.1rem; font-weight: 700; color: var(--accent); }
-    .container { padding: 16px; max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
-    .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
-    label { font-size: 0.85rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-    select, input { width: 100%; background: #0b1120; border: 1px solid var(--border); border-radius: 8px; padding: 12px; color: var(--text); font-size: 1rem; outline: none; }
+    .container { padding: 14px; max-width: 650px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+    label { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+    select, input { width: 100%; background: #0b1120; border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; color: var(--text); font-size: 0.95rem; outline: none; }
     select:focus, input:focus { border-color: var(--accent); }
-    .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .btn { background: var(--accent); color: white; border: none; border-radius: 8px; padding: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .btn { background: var(--accent); color: white; border: none; border-radius: 8px; padding: 10px; font-weight: 600; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
     .btn:active { background: var(--accent-hover); }
     .btn-secondary { background: #334155; }
-    .btn-save { background: #10b981; font-size: 1.1rem; padding: 14px; width: 100%; margin-top: 8px; }
-    .status-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem; background: #0b1120; padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); }
+    .btn-save { background: var(--success); font-size: 1.05rem; padding: 12px; width: 100%; margin-top: 6px; }
+    .status-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 0.8rem; background: #0b1120; padding: 5px 10px; border-radius: 6px; border: 1px solid var(--border); }
     .grid-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    #stats-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
-    #stats-table th, #stats-table td { padding: 10px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
-    #stats-table th { color: var(--text-muted); font-weight: 600; }
-    .loader { display: none; text-align: center; color: var(--accent); font-size: 0.9rem; font-weight: 600; padding: 8px; }
+    .table-wrapper { overflow-x: auto; margin-top: 8px; }
+    table { width: 100%; border-collapse: collapse; min-width: 480px; }
+    th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
+    th { color: var(--text-muted); font-weight: 600; }
+    .loader { display: none; text-align: center; color: var(--accent); font-size: 0.85rem; font-weight: 600; padding: 6px; }
     input[type="file"] { display: none; }
+    .summary-box { background: #0b1120; border: 1px solid var(--border); border-radius: 8px; padding: 10px; display: grid; grid-template-columns: repeat(4, 1fr); text-align: center; gap: 4px; }
+    .summary-item .num { font-size: 1.05rem; font-weight: 700; color: var(--accent); }
+    .summary-item .desc { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; }
+    .delete-btn { color: var(--danger); background: none; border: none; cursor: pointer; font-size: 1rem; }
   </style>
 </head>
 <body>
 
   <header>
     <h1>⛽ Tank & Trip Tracker</h1>
-    <div id="country-tag" class="status-badge">📍 Land: Ermittle...</div>
+    <div id="country-tag" class="status-badge">📍 GPS aktiv</div>
   </header>
 
   <div class="container">
+    <!-- Fahrzeugauswahl -->
     <div class="card">
-      <label>Fahrzeug auswählen</label>
-      <select id="vehicle-select" onchange="renderStats()">
+      <label>Fahrzeug</label>
+      <select id="vehicle-select" onchange="renderApp()">
         <option value="Africa Twin">Honda Africa Twin</option>
         <option value="Honda Rebel">Honda Rebel</option>
         <option value="Auto">Auto / Daily</option>
       </select>
     </div>
 
+    <!-- Erfassung: Kamera & Galerie -->
     <div class="card">
-      <label>1. Beleg & Tacho erfassen</label>
-      <div class="btn-row">
-        <button class="btn btn-secondary" onclick="document.getElementById('input-dash').click()">📸 1. Tacho</button>
-        <button class="btn btn-secondary" onclick="document.getElementById('input-receipt').click()">🧾 2. Beleg</button>
+      <label>1. Tacho & Beleg scannen</label>
+      
+      <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 2px;">Tacho (Trip & Gesamt-KM):</div>
+      <div class="btn-grid">
+        <button class="btn btn-secondary" onclick="document.getElementById('input-dash-cam').click()">📸 Tacho Kamera</button>
+        <button class="btn btn-secondary" onclick="document.getElementById('input-dash-gal').click()">🖼️ Tacho Galerie</button>
       </div>
-      <input type="file" id="input-dash" accept="image/*" capture="environment" onchange="processImage(this, 'dash')">
-      <input type="file" id="input-receipt" accept="image/*" capture="environment" onchange="processImage(this, 'receipt')">
+
+      <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 6px; margin-bottom: 2px;">Tankbeleg (Menge, Preis, Summe):</div>
+      <div class="btn-grid">
+        <button class="btn btn-secondary" onclick="document.getElementById('input-rec-cam').click()">🧾 Beleg Kamera</button>
+        <button class="btn btn-secondary" onclick="document.getElementById('input-rec-gal').click()">🖼️ Beleg Galerie</button>
+      </div>
+
+      <!-- Versteckte Inputs für Kamera & Galerie -->
+      <input type="file" id="input-dash-cam" accept="image/*" capture="environment" onchange="processImage(this, 'dash')">
+      <input type="file" id="input-dash-gal" accept="image/*" onchange="processImage(this, 'dash')">
+      <input type="file" id="input-rec-cam" accept="image/*" capture="environment" onchange="processImage(this, 'receipt')">
+      <input type="file" id="input-rec-gal" accept="image/*" onchange="processImage(this, 'receipt')">
+
       <div id="loader" class="loader">⏳ Bild wird analysiert (OCR)...</div>
     </div>
 
+    <!-- Erkannte Daten & manuelle Anpassung -->
     <div class="card">
-      <label>2. Daten prüfen</label>
+      <label>2. Werte prüfen & speichern</label>
       <div class="grid-inputs">
         <div>
+          <label>Datum der Tankung</label>
+          <input type="date" id="field-date">
+        </div>
+        <div>
+          <label>Land</label>
+          <input type="text" id="field-country" placeholder="z. B. Deutschland">
+        </div>
+        <div>
           <label>Trip (km)</label>
-          <input type="number" id="field-trip" step="0.1" placeholder="z. B. 312.4">
+          <input type="number" id="field-trip" step="0.1" placeholder="z. B. 280.5">
+        </div>
+        <div>
+          <label>Gesamt-KM</label>
+          <input type="number" id="field-total-km" step="1" placeholder="z. B. 7750">
         </div>
         <div>
           <label>Menge (Liter)</label>
-          <input type="number" id="field-liters" step="0.01" placeholder="z. B. 16.80">
+          <input type="number" id="field-liters" step="0.01" placeholder="z. B. 16.20">
         </div>
         <div>
           <label>Preis / L (€)</label>
-          <input type="number" id="field-ppl" step="0.001" placeholder="z. B. 1.729">
+          <input type="number" id="field-ppl" step="0.001" placeholder="z. B. 1.749">
         </div>
-        <div>
-          <label>Gesamt (€)</label>
-          <input type="number" id="field-total" step="0.01" placeholder="z. B. 29.05">
+        <div style="grid-column: span 2;">
+          <label>Gesamtbetrag (€)</label>
+          <input type="number" id="field-total" step="0.01" placeholder="z. B. 28.33">
         </div>
       </div>
       <button class="btn btn-save" onclick="saveEntry()">💾 Eintrag speichern</button>
     </div>
 
+    <!-- Filter & Auswertung -->
     <div class="card">
-      <label>3. Auswertung nach Land</label>
-      <table id="stats-table">
-        <thead>
-          <tr>
-            <th>Land</th>
-            <th>km</th>
-            <th>Liter</th>
-            <th>Gesamt</th>
-          </tr>
-        </thead>
-        <tbody id="stats-body"></tbody>
-      </table>
+      <label>3. Auswertung & Filter</label>
+
+      <!-- Filterleiste -->
+      <div class="grid-inputs">
+        <div>
+          <label>Jahr</label>
+          <select id="filter-year" onchange="onYearFilterChange()">
+            <option value="ALL">Alle Jahre</option>
+            <option value="2027">2027</option>
+            <option value="2026">2026</option>
+            <option value="2025">2025</option>
+            <option value="2024">2024</option>
+          </select>
+        </div>
+        <div>
+          <label>Monat</label>
+          <input type="month" id="filter-month" onchange="onMonthFilterChange()">
+        </div>
+        <div>
+          <label>Filter Land</label>
+          <select id="filter-country" onchange="renderApp()">
+            <option value="ALL">Alle Länder</option>
+          </select>
+        </div>
+        <div>
+          <label>Sortierung</label>
+          <select id="filter-sort" onchange="renderApp()">
+            <option value="date-desc">Datum: Neueste zuerst</option>
+            <option value="date-asc">Datum: Älteste zuerst</option>
+            <option value="km-desc">Höchste km</option>
+            <option value="cost-desc">Höchste Kosten</option>
+            <option value="ppl-asc">Günstigster Sprit</option>
+          </select>
+        </div>
+        <div>
+          <label>Datum Von</label>
+          <input type="date" id="filter-date-from" onchange="renderApp()">
+        </div>
+        <div>
+          <label>Datum Bis</label>
+          <input type="date" id="filter-date-to" onchange="renderApp()">
+        </div>
+        <div>
+          <label>Min. Literpreis (€)</label>
+          <input type="number" id="filter-min-ppl" step="0.01" placeholder="Von" oninput="renderApp()">
+        </div>
+        <div>
+          <label>Max. Literpreis (€)</label>
+          <input type="number" id="filter-max-ppl" step="0.01" placeholder="Bis" oninput="renderApp()">
+        </div>
+        <div>
+          <label>Min. Betrag (€)</label>
+          <input type="number" id="filter-min-cost" step="1" placeholder="Von" oninput="renderApp()">
+        </div>
+        <div>
+          <label>Max. Betrag (€)</label>
+          <input type="number" id="filter-max-cost" step="1" placeholder="Bis" oninput="renderApp()">
+        </div>
+      </div>
+
+      <!-- Dynamische Gesamtsummen der gefilterten Daten -->
+      <div class="summary-box">
+        <div class="summary-item">
+          <div class="num" id="sum-km">0</div>
+          <div class="desc">km</div>
+        </div>
+        <div class="summary-item">
+          <div class="num" id="sum-liters">0</div>
+          <div class="desc">Liter</div>
+        </div>
+        <div class="summary-item">
+          <div class="num" id="sum-cost">0 €</div>
+          <div class="desc">Kosten</div>
+        </div>
+        <div class="summary-item">
+          <div class="num" id="avg-ppl">0 €</div>
+          <div class="desc">Ø € / L</div>
+        </div>
+      </div>
+
+      <!-- Liste der gefilterten Einträge -->
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Datum / Land</th>
+              <th>km / Odo</th>
+              <th>Liter</th>
+              <th>€ / L</th>
+              <th>Summe</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="entries-body"></tbody>
+        </table>
+      </div>
     </div>
   </div>
 
   <script>
     let entries = JSON.parse(localStorage.getItem('tank_entries') || '[]');
-    let currentCountry = 'Deutschland';
+    let currentGpsCountry = 'Deutschland';
+
+    // Heutiges Datum als Standard setzen
+    document.getElementById('field-date').value = new Date().toISOString().split('T')[0];
 
     function detectCountry() {
       if ('geolocation' in navigator) {
@@ -119,14 +242,20 @@
           try {
             const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`);
             const data = await res.json();
-            currentCountry = data.address.country || 'Unbekannt';
-            document.getElementById('country-tag').innerText = `📍 ${currentCountry}`;
+            currentGpsCountry = data.address.country || 'Deutschland';
+            document.getElementById('country-tag').innerText = `📍 ${currentGpsCountry}`;
+            if (!document.getElementById('field-country').value) {
+              document.getElementById('field-country').value = currentGpsCountry;
+            }
           } catch (e) {
-            document.getElementById('country-tag').innerText = `📍 GPS aktiv`;
+            document.getElementById('country-tag').innerText = `📍 Deutschland`;
           }
         }, () => {
           document.getElementById('country-tag').innerText = `📍 Deutschland`;
+          document.getElementById('field-country').value = 'Deutschland';
         });
+      } else {
+        document.getElementById('field-country').value = 'Deutschland';
       }
     }
 
@@ -137,19 +266,30 @@
 
       try {
         const file = input.files[0];
+
+        if (file.lastModified) {
+          const modDate = new Date(file.lastModified).toISOString().split('T')[0];
+          document.getElementById('field-date').value = modDate;
+        }
+
         const { data: { text } } = await Tesseract.recognize(file, 'deu');
         
-        const numbers = (text.match(/\b\d{1,4}[.,]\d{1,3}\b/g) || [])
+        const numbers = (text.match(/\b\d{1,6}[.,]?\d{0,3}\b/g) || [])
           .map(n => parseFloat(n.replace(',', '.')))
           .filter(n => !isNaN(n));
 
         if (type === 'dash') {
-          const km = numbers.find(n => n >= 20 && n <= 1200);
-          if (km) document.getElementById('field-trip').value = km;
+          const trip = numbers.find(n => n >= 20 && n <= 1200);
+          const totalKm = numbers.find(n => n > 1200);
+
+          if (trip) document.getElementById('field-trip').value = trip;
+          if (totalKm) document.getElementById('field-total-km').value = Math.round(totalKm);
         } else {
-          numbers.sort((a, b) => a - b);
-          const ppl = numbers.find(n => n >= 1.10 && n <= 2.80);
-          const total = numbers.length > 0 ? numbers[numbers.length - 1] : null;
+          const decimals = numbers.filter(n => n.toString().includes('.'));
+          decimals.sort((a, b) => a - b);
+
+          const ppl = decimals.find(n => n >= 1.10 && n <= 2.80);
+          const total = decimals.length > 0 ? decimals[decimals.length - 1] : null;
 
           if (ppl) document.getElementById('field-ppl').value = ppl;
           if (total) document.getElementById('field-total').value = total;
@@ -161,15 +301,48 @@
         alert('OCR-Fehler: ' + err.message);
       } finally {
         loader.style.display = 'none';
+        input.value = '';
       }
+    }
+
+    // Jahres-Schnellfilter (setzt Von 01.01. bis 31.12.)
+    function onYearFilterChange() {
+      const yearVal = document.getElementById('filter-year').value;
+      if (yearVal === 'ALL') {
+        document.getElementById('filter-date-from').value = '';
+        document.getElementById('filter-date-to').value = '';
+      } else {
+        document.getElementById('filter-month').value = '';
+        document.getElementById('filter-date-from').value = `${yearVal}-01-01`;
+        document.getElementById('filter-date-to').value = `${yearVal}-12-31`;
+      }
+      renderApp();
+    }
+
+    // Monats-Filter synchronisiert Von/Bis Datumsfelder
+    function onMonthFilterChange() {
+      const monthVal = document.getElementById('filter-month').value;
+      if (!monthVal) return;
+      const [year, month] = monthVal.split('-');
+      const firstDay = `${year}-${month}-01`;
+      const lastDayDate = new Date(year, parseInt(month), 0);
+      const lastDay = `${year}-${month}-${String(lastDayDate.getDate()).padStart(2, '0')}`;
+
+      document.getElementById('filter-year').value = 'ALL';
+      document.getElementById('filter-date-from').value = firstDay;
+      document.getElementById('filter-date-to').value = lastDay;
+      renderApp();
     }
 
     function saveEntry() {
       const vehicle = document.getElementById('vehicle-select').value;
+      const date = document.getElementById('field-date').value || new Date().toISOString().split('T')[0];
       const trip = parseFloat(document.getElementById('field-trip').value) || 0;
+      const totalKm = parseFloat(document.getElementById('field-total-km').value) || 0;
       const liters = parseFloat(document.getElementById('field-liters').value) || 0;
       const ppl = parseFloat(document.getElementById('field-ppl').value) || 0;
       const total = parseFloat(document.getElementById('field-total').value) || 0;
+      const country = document.getElementById('field-country').value.trim() || currentGpsCountry;
 
       if (total === 0 && trip === 0) {
         alert('Bitte mindestens Kilometer oder Gesamtpreis angeben.');
@@ -177,62 +350,131 @@
       }
 
       entries.push({
+        id: Date.now(),
         vehicle,
-        country: currentCountry,
+        country,
         trip,
+        totalKm,
         liters,
         ppl,
         total,
-        date: new Date().toISOString()
+        date: date
       });
 
       localStorage.setItem('tank_entries', JSON.stringify(entries));
-      alert('Eintrag gespeichert!');
 
       document.getElementById('field-trip').value = '';
+      document.getElementById('field-total-km').value = '';
       document.getElementById('field-liters').value = '';
       document.getElementById('field-ppl').value = '';
       document.getElementById('field-total').value = '';
 
-      renderStats();
+      renderApp();
     }
 
-    function renderStats() {
-      const selected = document.getElementById('vehicle-select').value;
-      const stats = {};
+    function deleteEntry(id) {
+      if (confirm('Diesen Eintrag wirklich löschen?')) {
+        entries = entries.filter(e => e.id !== id);
+        localStorage.setItem('tank_entries', JSON.stringify(entries));
+        renderApp();
+      }
+    }
 
-      entries.filter(e => e.vehicle === selected).forEach(e => {
-        if (!stats[e.country]) {
-          stats[e.country] = { km: 0, liters: 0, total: 0 };
-        }
-        stats[e.country].km += e.trip;
-        stats[e.country].liters += e.liters;
-        stats[e.country].total += e.total;
+    function updateCountryFilterOptions(vehicleEntries) {
+      const filterSelect = document.getElementById('filter-country');
+      const currentSelected = filterSelect.value;
+      const countries = [...new Set(vehicleEntries.map(e => e.country).filter(Boolean))];
+
+      filterSelect.innerHTML = '<option value="ALL">Alle Länder</option>';
+      countries.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c;
+        opt.innerText = c;
+        if (c === currentSelected) opt.selected = true;
+        filterSelect.appendChild(opt);
+      });
+    }
+
+    function renderApp() {
+      const selectedVehicle = document.getElementById('vehicle-select').value;
+      let list = entries.filter(e => e.vehicle === selectedVehicle);
+
+      updateCountryFilterOptions(list);
+
+      const countryFilter = document.getElementById('filter-country').value;
+      if (countryFilter !== 'ALL') {
+        list = list.filter(e => e.country === countryFilter);
+      }
+
+      const dateFrom = document.getElementById('filter-date-from').value;
+      if (dateFrom) {
+        list = list.filter(e => e.date >= dateFrom);
+      }
+      const dateTo = document.getElementById('filter-date-to').value;
+      if (dateTo) {
+        list = list.filter(e => e.date <= dateTo);
+      }
+
+      const minPpl = parseFloat(document.getElementById('filter-min-ppl').value);
+      if (!isNaN(minPpl)) list = list.filter(e => e.ppl >= minPpl);
+
+      const maxPpl = parseFloat(document.getElementById('filter-max-ppl').value);
+      if (!isNaN(maxPpl)) list = list.filter(e => e.ppl <= maxPpl);
+
+      const minCost = parseFloat(document.getElementById('filter-min-cost').value);
+      if (!isNaN(minCost)) list = list.filter(e => e.total >= minCost);
+
+      const maxCost = parseFloat(document.getElementById('filter-max-cost').value);
+      if (!isNaN(maxCost)) list = list.filter(e => e.total <= maxCost);
+
+      const sortBy = document.getElementById('filter-sort').value;
+      list.sort((a, b) => {
+        if (sortBy === 'date-desc') return new Date(b.date) - new Date(a.date);
+        if (sortBy === 'date-asc') return new Date(a.date) - new Date(b.date);
+        if (sortBy === 'km-desc') return b.trip - a.trip;
+        if (sortBy === 'cost-desc') return b.total - a.total;
+        if (sortBy === 'ppl-asc') return a.ppl - b.ppl;
+        return 0;
       });
 
-      const tbody = document.getElementById('stats-body');
+      let sumKm = 0, sumLiters = 0, sumCost = 0;
+      list.forEach(e => {
+        sumKm += e.trip;
+        sumLiters += e.liters;
+        sumCost += e.total;
+      });
+
+      document.getElementById('sum-km').innerText = sumKm.toFixed(1);
+      document.getElementById('sum-liters').innerText = sumLiters.toFixed(2);
+      document.getElementById('sum-cost').innerText = sumCost.toFixed(2) + ' €';
+      document.getElementById('avg-ppl').innerText = sumLiters > 0 ? (sumCost / sumLiters).toFixed(3) + ' €' : '0.000 €';
+
+      const tbody = document.getElementById('entries-body');
       tbody.innerHTML = '';
 
-      const countries = Object.keys(stats);
-      if (countries.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" style="color:var(--text-muted);text-align:center;">Noch keine Einträge</td></tr>';
+      if (list.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:16px;">Keine Einträge für diese Filterkriterien</td></tr>';
         return;
       }
 
-      countries.forEach(c => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td><strong>${c}</strong></td>
-          <td>${stats[c].km.toFixed(1)}</td>
-          <td>${stats[c].liters.toFixed(2)}</td>
-          <td>${stats[c].total.toFixed(2)} €</td>
+      list.forEach(e => {
+        const parts = e.date.split('-');
+        const dateStr = parts.length === 3 ? `${parts[2]}.${parts[1]}.${parts[0].slice(2)}` : e.date;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${e.country}</strong><br><span style="font-size:0.75rem; color:var(--text-muted);">${dateStr}</span></td>
+          <td>${e.trip.toFixed(1)} km<br><span style="font-size:0.75rem; color:var(--text-muted);">${e.totalKm ? e.totalKm + ' km' : '-'}</span></td>
+          <td>${e.liters.toFixed(2)} l</td>
+          <td>${e.ppl.toFixed(3)} €</td>
+          <td><strong>${e.total.toFixed(2)} €</strong></td>
+          <td><button class="delete-btn" onclick="deleteEntry(${e.id})" title="Löschen">✕</button></td>
         `;
-        tbody.appendChild(row);
+        tbody.appendChild(tr);
       });
     }
 
     detectCountry();
-    renderStats();
+    renderApp();
   </script>
 </body>
 </html>
