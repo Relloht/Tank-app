@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Tank & Trip Tracker</title>
+  <meta name="theme-color" content="#0f172a">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <!-- Tesseract.js für Texterkennung direkt im Browser -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --accent: #0ea5e9;
+      --accent-hover: #0284c7;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: #334155;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: var(--bg); color: var(--text); padding-bottom: 80px; }
+    header { background: var(--card); padding: 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 10; }
+    h1 { font-size: 1.1rem; font-weight: 700; color: var(--accent); }
+    .container { padding: 16px; max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+    label { font-size: 0.85rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+    select, input { width: 100%; background: #0b1120; border: 1px solid var(--border); border-radius: 8px; padding: 12px; color: var(--text); font-size: 1rem; outline: none; }
+    select:focus, input:focus { border-color: var(--accent); }
+    .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .btn { background: var(--accent); color: white; border: none; border-radius: 8px; padding: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn:active { background: var(--accent-hover); }
+    .btn-secondary { background: #334155; }
+    .btn-save { background: #10b981; font-size: 1.1rem; padding: 14px; width: 100%; margin-top: 8px; }
+    .status-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem; background: #0b1120; padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); }
+    .grid-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    #stats-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    #stats-table th, #stats-table td { padding: 10px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+    #stats-table th { color: var(--text-muted); font-weight: 600; }
+    .loader { display: none; text-align: center; color: var(--accent); font-size: 0.9rem; font-weight: 600; padding: 8px; }
+    input[type="file"] { display: none; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>⛽ Tank & Trip Tracker</h1>
+    <div id="country-tag" class="status-badge">📍 Land: Ermittle...</div>
+  </header>
+
+  <div class="container">
+    <div class="card">
+      <label>Fahrzeug auswählen</label>
+      <select id="vehicle-select" onchange="renderStats()">
+        <option value="Africa Twin">Honda Africa Twin</option>
+        <option value="Honda Rebel">Honda Rebel</option>
+        <option value="Auto">Auto / Daily</option>
+      </select>
+    </div>
+
+    <div class="card">
+      <label>1. Beleg & Tacho erfassen</label>
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="document.getElementById('input-dash').click()">📸 1. Tacho</button>
+        <button class="btn btn-secondary" onclick="document.getElementById('input-receipt').click()">🧾 2. Beleg</button>
+      </div>
+      <input type="file" id="input-dash" accept="image/*" capture="environment" onchange="processImage(this, 'dash')">
+      <input type="file" id="input-receipt" accept="image/*" capture="environment" onchange="processImage(this, 'receipt')">
+      <div id="loader" class="loader">⏳ Bild wird analysiert (OCR)...</div>
+    </div>
+
+    <div class="card">
+      <label>2. Daten prüfen</label>
+      <div class="grid-inputs">
+        <div>
+          <label>Trip (km)</label>
+          <input type="number" id="field-trip" step="0.1" placeholder="z. B. 312.4">
+        </div>
+        <div>
+          <label>Menge (Liter)</label>
+          <input type="number" id="field-liters" step="0.01" placeholder="z. B. 16.80">
+        </div>
+        <div>
+          <label>Preis / L (€)</label>
+          <input type="number" id="field-ppl" step="0.001" placeholder="z. B. 1.729">
+        </div>
+        <div>
+          <label>Gesamt (€)</label>
+          <input type="number" id="field-total" step="0.01" placeholder="z. B. 29.05">
+        </div>
+      </div>
+      <button class="btn btn-save" onclick="saveEntry()">💾 Eintrag speichern</button>
+    </div>
+
+    <div class="card">
+      <label>3. Auswertung nach Land</label>
+      <table id="stats-table">
+        <thead>
+          <tr>
+            <th>Land</th>
+            <th>km</th>
+            <th>Liter</th>
+            <th>Gesamt</th>
+          </tr>
+        </thead>
+        <tbody id="stats-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    let entries = JSON.parse(localStorage.getItem('tank_entries') || '[]');
+    let currentCountry = 'Deutschland';
+
+    function detectCountry() {
+      if ('geolocation' in navigator) {
+        navigator.geolocation.getCurrentPosition(async (pos) => {
+          try {
+            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`);
+            const data = await res.json();
+            currentCountry = data.address.country || 'Unbekannt';
+            document.getElementById('country-tag').innerText = `📍 ${currentCountry}`;
+          } catch (e) {
+            document.getElementById('country-tag').innerText = `📍 GPS aktiv`;
+          }
+        }, () => {
+          document.getElementById('country-tag').innerText = `📍 Deutschland`;
+        });
+      }
+    }
+
+    async function processImage(input, type) {
+      if (!input.files || !input.files[0]) return;
+      const loader = document.getElementById('loader');
+      loader.style.display = 'block';
+
+      try {
+        const file = input.files[0];
+        const { data: { text } } = await Tesseract.recognize(file, 'deu');
+        
+        const numbers = (text.match(/\b\d{1,4}[.,]\d{1,3}\b/g) || [])
+          .map(n => parseFloat(n.replace(',', '.')))
+          .filter(n => !isNaN(n));
+
+        if (type === 'dash') {
+          const km = numbers.find(n => n >= 20 && n <= 1200);
+          if (km) document.getElementById('field-trip').value = km;
+        } else {
+          numbers.sort((a, b) => a - b);
+          const ppl = numbers.find(n => n >= 1.10 && n <= 2.80);
+          const total = numbers.length > 0 ? numbers[numbers.length - 1] : null;
+
+          if (ppl) document.getElementById('field-ppl').value = ppl;
+          if (total) document.getElementById('field-total').value = total;
+          if (ppl && total && total > ppl) {
+            document.getElementById('field-liters').value = (total / ppl).toFixed(2);
+          }
+        }
+      } catch (err) {
+        alert('OCR-Fehler: ' + err.message);
+      } finally {
+        loader.style.display = 'none';
+      }
+    }
+
+    function saveEntry() {
+      const vehicle = document.getElementById('vehicle-select').value;
+      const trip = parseFloat(document.getElementById('field-trip').value) || 0;
+      const liters = parseFloat(document.getElementById('field-liters').value) || 0;
+      const ppl = parseFloat(document.getElementById('field-ppl').value) || 0;
+      const total = parseFloat(document.getElementById('field-total').value) || 0;
+
+      if (total === 0 && trip === 0) {
+        alert('Bitte mindestens Kilometer oder Gesamtpreis angeben.');
+        return;
+      }
+
+      entries.push({
+        vehicle,
+        country: currentCountry,
+        trip,
+        liters,
+        ppl,
+        total,
+        date: new Date().toISOString()
+      });
+
+      localStorage.setItem('tank_entries', JSON.stringify(entries));
+      alert('Eintrag gespeichert!');
+
+      document.getElementById('field-trip').value = '';
+      document.getElementById('field-liters').value = '';
+      document.getElementById('field-ppl').value = '';
+      document.getElementById('field-total').value = '';
+
+      renderStats();
+    }
+
+    function renderStats() {
+      const selected = document.getElementById('vehicle-select').value;
+      const stats = {};
+
+      entries.filter(e => e.vehicle === selected).forEach(e => {
+        if (!stats[e.country]) {
+          stats[e.country] = { km: 0, liters: 0, total: 0 };
+        }
+        stats[e.country].km += e.trip;
+        stats[e.country].liters += e.liters;
+        stats[e.country].total += e.total;
+      });
+
+      const tbody = document.getElementById('stats-body');
+      tbody.innerHTML = '';
+
+      const countries = Object.keys(stats);
+      if (countries.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="color:var(--text-muted);text-align:center;">Noch keine Einträge</td></tr>';
+        return;
+      }
+
+      countries.forEach(c => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td><strong>${c}</strong></td>
+          <td>${stats[c].km.toFixed(1)}</td>
+          <td>${stats[c].liters.toFixed(2)}</td>
+          <td>${stats[c].total.toFixed(2)} €</td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    detectCountry();
+    renderStats();
+  </script>
+</body>
+</html>
