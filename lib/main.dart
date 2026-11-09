@@ -17,10 +17,9 @@ class _TankTrackerAppState extends State<TankTrackerApp> {
   final OcrService _ocrService = OcrService();
   final ImagePicker _picker = ImagePicker();
 
-  List> _vehicles = [];
+  List<Map<String, dynamic>> _vehicles = [];
   int? _selectedVehicleId;
 
-  // Formular-Controller
   final _tripKmController = TextEditingController();
   final _litersController = TextEditingController();
   final _priceController = TextEditingController();
@@ -60,7 +59,6 @@ class _TankTrackerAppState extends State<TankTrackerApp> {
     if (photo == null) return;
 
     setState(() => _loading = true);
-    // Text erkennen & GPS parallel abrufen
     String raw = await _ocrService.extractText(File(photo.path));
     Map<String, double> data = _ocrService.parseReceipt(raw);
     String country = await LocationService.getCurrentCountry();
